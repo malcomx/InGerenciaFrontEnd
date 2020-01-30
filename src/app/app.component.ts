@@ -1,6 +1,9 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
+import { News } from './news';
+
+import { ApiService } from './api.service';
 
 @Component({
   selector: 'app-root',
@@ -12,26 +15,31 @@ export class AppComponent implements OnInit {
   title = 'Hacker News';
   module = 'Feed';
 
+  ELEMENT_DATA: News[] = [];
+
   // 
   displayedColumns: string[] = ['title', 'author', 'created', 'icon'];
-  dataSource = new MatTableDataSource<Feed>(ELEMENT_DATA);
+  dataSource: any;
 
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
 
-  ngOnInit() {
-    this.dataSource.paginator = this.paginator;
+  constructor(private api: ApiService) {
+    this.api.getNews().subscribe((data) => {
+      console.log(data.body);
+      this.ELEMENT_DATA = data.body;
+      this.dataSource = new MatTableDataSource(this.ELEMENT_DATA);
+      this.dataSource.paginator = this.paginator;
+    });
+  }
+
+  ngOnInit() { }
+
+  removeNews(id: string) {
+    console.log("Noticia ID a eliminar: " + id);
+    this.api.removeNews(id).subscribe((data) => {
+      this.ELEMENT_DATA = data.body;
+      this.dataSource = new MatTableDataSource(this.ELEMENT_DATA);
+      this.dataSource.paginator = this.paginator;
+    });
   }
 }
-
-export interface Feed {
-  title: string;
-  author: string;
-  created: string;
-  icon: string;
-}
-
-const ELEMENT_DATA: Feed[] = [
-  { title: 'Title 1', author: 'Juan', created: 'xx Moments ago', icon: 'delete_forever' },
-  { title: 'Title 2', author: 'Juan', created: 'xx Moments ago', icon: 'delete_forever' },
-  { title: 'Title 3', author: 'Juan', created: 'xx Moments ago', icon: 'delete_forever' }
-];
